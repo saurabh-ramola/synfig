@@ -487,6 +487,22 @@ class Param:
                 self.expression = ret
                 return ret, self.expression_controllers
 
+            elif self.param[0].tag == "cos":
+                self.subparams["cos"].extract_subparams()
+                angle, eff_1 = self.subparams["cos"].subparams["angle"].recur_animate("region_angle")
+                amp, eff_2 = self.subparams["cos"].subparams["amp"].recur_animate("real")
+                self.expression_controllers.extend(eff_1)
+                self.expression_controllers.extend(eff_2)
+                
+                if self.dimension == 2:
+                    ret = "mul(Math.cos(degreesToRadians({angle})), [{amp}, {amp}])"
+                else:
+                    ret = "mul(Math.cos(degreesToRadians({angle})),{amp})"
+                ret = ret.format(angle=angle,amp=amp)
+
+                self.expression = ret
+                return ret, self.expression_controllers
+
         else:
             self.single_animate(anim_type)
             # Insert the animation into the effect
@@ -799,6 +815,17 @@ class Param:
                 else:
                     ret = math.sin(angle)*amp
 
+            elif self.param[0].tag == "cos":
+                angle = self.subparams["cos"].subparams["angle"].__get_value(frame)
+                amp = self.subparams["cos"].subparams["amp"].__get_value(frame)
+                angle = math.radians(angle)
+                if isinstance(amp, list):
+                    ret = [0, 0]
+                    ret[0] = math.cos(angle) * amp[0]
+                    ret[1] = math.cos(angle) * amp[1]
+                else:
+                    ret = math.cos(angle)*amp
+
 
         else:
             ret = self.get_single_value(frame)
@@ -933,6 +960,11 @@ class Param:
                 self.subparams["sine"].extract_subparams()
                 self.subparams["sine"].subparams["angle"].update_frame_window(window)
                 self.subparams["sine"].subparams["amp"].update_frame_window(window)
+
+            elif node.tag == "cos":
+                self.subparams["cos"].extract_subparams()
+                self.subparams["cos"].subparams["angle"].update_frame_window(window)
+                self.subparams["cos"].subparams["amp"].update_frame_window(window)
 
         if is_animated(node) == 2:
             for waypoint in node:
