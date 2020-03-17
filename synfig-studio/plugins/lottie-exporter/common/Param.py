@@ -503,6 +503,19 @@ class Param:
                 self.expression = ret
                 return ret, self.expression_controllers
 
+            elif self.param[0].tag == "fromint":
+                self.subparams["fromint"].extract_subparams()
+                link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("real")
+                self.expression_controllers.extend(eff_1)
+                if self.dimension == 2:
+                    ret = "[{link},{link}]"
+                    ret = ret.format(link=link)
+                else:
+                    ret = "{link}"
+                    ret = ret.format(link=link)
+                self.expression = ret
+                return ret, self.expression_controllers
+
         else:
             self.single_animate(anim_type)
             # Insert the animation into the effect
@@ -826,6 +839,14 @@ class Param:
                 else:
                     ret = math.cos(angle)*amp
 
+            elif self.param[0].tag == "fromint":
+                link = self.subparams["fromint"].subparams["link"].__get_value(frame)
+                if isinstance(link, list):
+                    ret = [0, 0]
+                    ret[0] = int(link[0]/60)*60.0
+                    ret[1] = int(link[1]/60)*60.0
+                else:
+                    ret = int(link/60)*60.0
 
         else:
             ret = self.get_single_value(frame)
@@ -965,6 +986,10 @@ class Param:
                 self.subparams["cos"].extract_subparams()
                 self.subparams["cos"].subparams["angle"].update_frame_window(window)
                 self.subparams["cos"].subparams["amp"].update_frame_window(window)
+
+            elif node.tag == "fromint":
+                self.subparams["fromint"].extract_subparams()
+                self.subparams["fromint"].subparams["link"].update_frame_window(window)
 
         if is_animated(node) == 2:
             for waypoint in node:
