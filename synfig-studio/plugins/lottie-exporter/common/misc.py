@@ -114,7 +114,7 @@ def parse_position(animated, i):
                get_frame(animated[i])]
 
     elif animated.attrib["type"] == "points":
-        pos = [int(animated[i][0].attrib["value"]),
+        pos = [int(animated[i][0].attrib["value"]) * settings.PIX_PER_UNIT,
                get_frame(animated[i])]
 
     elif animated.attrib["type"] == "bool":

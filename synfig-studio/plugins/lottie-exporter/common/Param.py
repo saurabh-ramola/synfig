@@ -505,12 +505,14 @@ class Param:
 
             elif self.param[0].tag == "fromint":
                 self.subparams["fromint"].extract_subparams()
-                link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("real")
-                self.expression_controllers.extend(eff_1)
                 if self.dimension == 2:
+                    link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("points")
+                    self.expression_controllers.extend(eff_1)
                     ret = "[{link},{link}]"
                     ret = ret.format(link=link)
                 else:
+                    link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("real")
+                    self.expression_controllers.extend(eff_1)
                     ret = "{link}"
                     ret = ret.format(link=link)
                 self.expression = ret
@@ -843,10 +845,10 @@ class Param:
                 link = self.subparams["fromint"].subparams["link"].__get_value(frame)
                 if isinstance(link, list):
                     ret = [0, 0]
-                    ret[0] = int(link[0]/60)*60.0
-                    ret[1] = int(link[1]/60)*60.0
+                    ret[0] = round(link[0]/settings.PIX_PER_UNIT)*settings.PIX_PER_UNIT
+                    ret[1] = round(link[1]/settings.PIX_PER_UNIT)*settings.PIX_PER_UNIT
                 else:
-                    ret = int(link/60)*60.0
+                    ret = round(link/settings.PIX_PER_UNIT)*settings.PIX_PER_UNIT
 
         else:
             ret = self.get_single_value(frame)
