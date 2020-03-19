@@ -506,15 +506,15 @@ class Param:
             elif self.param[0].tag == "fromint":
                 self.subparams["fromint"].extract_subparams()
                 if self.dimension == 2:
-                    link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("points")
+                    link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("scalar_multiply")
                     self.expression_controllers.extend(eff_1)
-                    ret = "[{link},{link}]"
-                    ret = ret.format(link=link)
+                    ret = "[mul(Math.round({link}), {PIX_PER_UNIT}), mul(Math.round({link}), {PIX_PER_UNIT})]"
+                    ret = ret.format(link=link, PIX_PER_UNIT=settings.PIX_PER_UNIT)
                 else:
-                    link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("real")
+                    link, eff_1 = self.subparams["fromint"].subparams["link"].recur_animate("scalar_multiply")
                     self.expression_controllers.extend(eff_1)
-                    ret = "{link}"
-                    ret = ret.format(link=link)
+                    ret = "mul(Math.round({link}), {PIX_PER_UNIT})"
+                    ret = ret.format(link=link, PIX_PER_UNIT=settings.PIX_PER_UNIT)
                 self.expression = ret
                 return ret, self.expression_controllers
 
@@ -845,10 +845,10 @@ class Param:
                 link = self.subparams["fromint"].subparams["link"].__get_value(frame)
                 if isinstance(link, list):
                     ret = [0, 0]
-                    ret[0] = round(link[0]/settings.PIX_PER_UNIT)*settings.PIX_PER_UNIT
-                    ret[1] = round(link[1]/settings.PIX_PER_UNIT)*settings.PIX_PER_UNIT
+                    ret[0] = round(link[0])*settings.PIX_PER_UNIT
+                    ret[1] = round(link[1])*settings.PIX_PER_UNIT
                 else:
-                    ret = round(link/settings.PIX_PER_UNIT)*settings.PIX_PER_UNIT
+                    ret = round(link)*settings.PIX_PER_UNIT
 
         else:
             ret = self.get_single_value(frame)
