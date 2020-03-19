@@ -896,6 +896,19 @@ class Param:
         self.param.append(root)
         self.SUBPARAMS_EXTRACTED = 0
 
+    def scale_convert_link(self, val):
+        """
+        Private method for inserting <scale></scale>, given the multiplication value
+        """
+        st = "<scale type='real'><link></link><scalar><real value='1.00'/></scalar></scale>"
+        root = etree.fromstring(st)
+        first = copy.deepcopy(self.param[0])
+        root[0].append(first)
+        root[1][0].attrib["value"] = str(val)
+        self.param[0].getparent().remove(self.param[0])
+        self.param.append(root)
+        self.SUBPARAMS_EXTRACTED = 0
+
     def update_frame_window(self, window):
         """
         Given an animation, find the minimum and maximum frame at which the
