@@ -7,7 +7,7 @@ import sys
 import copy
 import math
 import inspect
-from lxml import etree
+from lxml import etree,html
 import settings
 import common
 import synfig.group
@@ -907,6 +907,18 @@ class Param:
         root[1][0].attrib["value"] = str(val)
         self.param[0].getparent().remove(self.param[0])
         self.param.append(root)
+        self.SUBPARAMS_EXTRACTED = 0
+
+    def add_end_tag(self, val):
+        """
+        Private method for inserting <scale></scale>, given the multiplication value
+        """        
+        st = "<param name='end_point'><vector><x>1.0</x><y>0.0</y></vector></param>"
+        root = etree.fromstring(st)
+        self.param[0].getparent().append(root)
+        # print(self.param[0])
+        # self.param.append(root)
+        print(html.tostring(self.param))
         self.SUBPARAMS_EXTRACTED = 0
 
     def update_frame_window(self, window):

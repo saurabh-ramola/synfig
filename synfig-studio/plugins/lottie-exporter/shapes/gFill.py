@@ -67,6 +67,63 @@ def gen_linear_gradient(lottie, layer, idx):
         gradient.fill_path(lottie["g"], "k")
         modify_gradient_according_to_latest_version(lottie["g"]["k"])
 
+def gen_radial_gradient(lottie, layer, idx):
+    """
+    Generates the dictionary corresponding to shapes/gFill.json
+
+    Args:
+    """
+    index = Count()
+    lottie["ty"] = "gf"
+    lottie["r"] = 1    # Don't know it's meaning yet, but works without this also
+    lottie["o"] = {}   # Opacity of the gradient layer
+    lottie["nm"] = layer.get_description()
+    lottie["t"] = 2    # 2 means radial gradient layer
+    lottie["s"] = {}   # Starting point of gradient
+    lottie["e"] = {}   # Ending point of gradient
+    lottie["g"] = {}   # Gradient information is stored here
+    lottie["h"] = {}   # Gradient Highlight Length is stored here
+    lottie["a"] = {}   # Highlight Angle is stored here
+
+    # Color Opacity
+    opacity = layer.get_param("amount").get()
+    is_animate = is_animated(opacity[0])
+    if is_animate == 2:
+        # Telling the function that this is for opacity
+        opacity[0].attrib['type'] = 'opacity'
+        gen_value_Keyframed(lottie["o"], opacity[0], index.inc())
+
+    else:
+        if is_animate == 0:
+            val = float(opacity[0].attrib["value"]) * settings.OPACITY_CONSTANT
+        else:
+            val = float(opacity[0][0][0].attrib["value"]) * settings.OPACITY_CONSTANT
+        gen_properties_value(lottie["o"],
+                             val,
+                             index.inc(),
+                             settings.DEFAULT_ANIMATED,
+                             settings.NO_INFO)
+
+        # Starting point
+        center = layer.get_param("center")
+        center.animate("vector")
+        center.fill_path(lottie, "s")
+        
+        # root = layer.get_param("center")
+        # root.add_end_tag(1)
+        radius = layer.get_param("end_point")
+        radius.animate("vector")
+        radius.fill_path(lottie,"e")
+        
+        # Gradient colors
+        lottie["g"]["k"] = {}
+        lottie["g"]["ix"] = index.inc()
+        gradient = layer.get_param("gradient")
+        modify_gradient(gradient)
+        gradient.animate("gradient")  # To find the lottie path of the modified gradient
+        lottie["g"]["p"] = len(gradient.get()[0][0][0])
+        gradient.fill_path(lottie["g"], "k")
+        modify_gradient_according_to_latest_version(lottie["g"]["k"])
 
 def modify_gradient_according_to_latest_version(lottie):
     """
@@ -141,7 +198,8 @@ def add_colors_to_gradient(waypoint, gd, positions):
     st = "<color pos='{pos}'><r>{red}</r><g>{green}</g><b>{blue}</b><a>{alpha}</a></color>"
 
     # Now add all the colors back
-    for val in positions:
+
+    for index,val in enumerate(positions):
         color = gd.get_color_at_x(val)
         lxml_col = etree.fromstring(st.format(pos=val, red=color.red, green=color.green, blue=color.blue, alpha=color.alpha))
         waypoint[0].append(lxml_col)
