@@ -6,7 +6,6 @@ Will store the Parameters class for Synfig parameters
 import sys
 import copy
 import math
-import inspect
 from lxml import etree
 import settings
 import common
@@ -352,10 +351,12 @@ class Param:
                 return ret, self.expression_controllers
 
             elif self.param[0].tag == "radial_composite":   # only for vectors
-                dic = {"gen_layer_group", "gen_layer_rotate", "gen_layer_translate", "gen_layer_scale"}
                 prop_name = "angle"
-                if self.called_by(dic): # Should find some easier way of finding the caller function
+                sett = settings.GROUP_LAYER.copy()
+                sett.update(settings.PRE_COMP_LAYER)
+                if self.get_layer().get_type() in sett: # depending upon the layer type, we use the angle is positive/negative value
                     prop_name = "rotate_layer_angle"
+
                 self.subparams["radial_composite"].extract_subparams()
                 rad, eff_1 = self.subparams["radial_composite"].subparams["radius"].recur_animate("real")
                 ang, eff_2 = self.subparams["radial_composite"].subparams["theta"].recur_animate(prop_name)
@@ -530,6 +531,16 @@ class Param:
                 self.expression = ret
                 return ret, self.expression_controllers
 
+            elif self.param[0].tag == "vectorangle":
+                self.subparams["vectorangle"].extract_subparams()
+                vector, eff_1 = self.subparams["vectorangle"].subparams["vector"].recur_animate("vector")
+                self.expression_controllers.extend(eff_1)
+                ret = "radiansToDegrees(Math.atan2({y}[1], {x}[0]))"
+                ret = ret.format(y=vector,x=vector)
+
+                self.expression = ret
+                return ret, self.expression_controllers
+
         else:
             self.single_animate(anim_type)
             # Insert the animation into the effect
@@ -550,15 +561,6 @@ class Param:
             ret = ret.format(effect_1=self.expression_controllers[-1]["nm"], effect_2=self.expression_controllers[-1]["ef"][0]["nm"])
             self.expression = ret
             return ret, self.expression_controllers
-
-    def called_by(self, dic):
-        """
-        Checks if this function's ancestor are in this dictionary
-        """
-        for it in inspect.stack():
-            if it[3] in dic:
-                return True
-        return False
 
     def single_animate(self, anim_type):
         """
@@ -868,6 +870,11 @@ class Param:
                 rad = math.pi/180
                 ret = math.atan2(y,x)/rad
 
+            elif self.param[0].tag == "vectorangle":
+                vector = self.subparams["vectorangle"].subparams["vector"].__get_value(frame)
+                rad = math.pi/180
+                ret = math.atan2(vector[1],vector[0])/rad
+
         else:
             ret = self.get_single_value(frame)
             if isinstance(ret, list):
@@ -1028,6 +1035,10 @@ class Param:
                 self.subparams["atan2"].extract_subparams()
                 self.subparams["atan2"].subparams["y"].update_frame_window(window)
                 self.subparams["atan2"].subparams["x"].update_frame_window(window)
+
+            elif node.tag == "vectorangle":
+                self.subparams["vectorangle"].extract_subparams()
+                self.subparams["vectorangle"].subparams["vector"].update_frame_window(window)
 
         if is_animated(node) == 2:
             for waypoint in node:
