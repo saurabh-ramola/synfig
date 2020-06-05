@@ -12,6 +12,7 @@ from layers.image import gen_layer_image
 from layers.shape_solid import gen_layer_shape_solid
 from layers.preComp import gen_layer_precomp
 from layers.group import gen_layer_group
+from layers.text import gen_layer_text
 sys.path.append("..")
 
 
@@ -36,7 +37,8 @@ def gen_layers(lottie, canvas, layer_itr):
     pre_comp = settings.PRE_COMP_LAYER
     group = settings.GROUP_LAYER
     skeleton = settings.SKELETON_LAYER
-    supported_layers = set.union(shape, solid, shape_solid, image, pre_comp, group, skeleton)
+    text = settings.TEXT_LAYER
+    supported_layers = set.union(shape, solid, shape_solid, image, pre_comp, group, skeleton,text)
     while itr >= 0:
         layer = canvas[itr]
         if layer.get_type() not in supported_layers:  # Only supported layers
@@ -84,4 +86,9 @@ def gen_layers(lottie, canvas, layer_itr):
         elif layer.get_type() in skeleton:
             pass
             # skeletons are just for linking purposes which is served by bones
+
+        elif layer.get_type() in text:
+            gen_layer_text(lottie[-1],
+                           layer,
+                           itr)
         itr -= 1
